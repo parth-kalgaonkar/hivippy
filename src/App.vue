@@ -1,85 +1,75 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
-<template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+<template class="relative">
+  <ImageView
+		v-for="(img, idx) in img_paths"
+		:class="{
+			'hidden': !in_range(idx),
+			'-translate-x-[198%]': (idx === (count-2)),
+			'-translate-x-[98%]': (idx === (count-1)),
+			'translate-x-[118%]': (idx === (count+1)),
+			'translate-x-[218%]': (idx === (count+2)),
+			'translate-x-1/12': (idx === count),
+		}"
+		class="fixed duration-700 ease-in-out transition-all"
+		:img_item="img"/>
+	<div class="fixed w-full bottom-[5%] flex justify-center">
+		<ScrollView :total="img_paths.length" :active="count"/>
+	</div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script>
+	import ImageView from './components/ImageView.vue';
+	import ScrollView from './components/ScrollView.vue';
+	import {img_paths} from './stores/image_paths.js';
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+	export default {
+		data() {
+			return {
+				count: 0,
+				img_paths,
+			}
+		},
+		components: {
+			ImageView,
+			ScrollView,
+		},
+		methods: {
+			in_range(idx) {
+				if (idx < (this.count-2)) return false;
+				if (idx > (this.count+2)) return false;
+				return true;
+			},
+			next_img() {
+				var len = this.img_paths.length;
+				if (this.count == (len - 1)) {
+					return;
+				}
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
+				this.count = (this.count + 1);
+			},
+			prev_img() {
+				var len = this.img_paths.length;
+				if (this.count == 0) {
+					return;
+				}
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
+				this.count = (this.count - 1);
+			},
+			handleKeyDown(e) {
+				switch (e.keyCode) {
+					case 37:
+						this.prev_img();
+						break;
+					case 39:
+						this.next_img();
+						break;
+				}
+			},
+		},
+		mounted() {
+			window.addEventListener('keydown', this.handleKeyDown, null);
+		},
+		beforeUnmount() {
+			window.addEventListener('keydown', this.handleKeyDown);
+		},
+	}
+</script>
